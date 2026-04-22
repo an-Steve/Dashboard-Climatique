@@ -69,18 +69,31 @@ Le dashboard utilise des flux de données provenant des institutions scientifiqu
    ```bash
    git clone [https://github.com/votre-nom/moniteur-climatique.git](https://github.com/votre-nom/moniteur-climatique.git)
 
+----
+## 📸 Aperçu de l'Interface Tactique
 
-##  Captures d'écran
+<table border="0">
+  <tr>
+    <td>
+      <img src="https://github.com/user-attachments/assets/04227762-b763-4d81-979a-cb7f4b435f91" width="100%" alt="Indicateurs Clés" />
+      <p align="center"><b>Statistiques Vitales</b></p>
+    </td>
+    <td>
+      <img src="https://github.com/user-attachments/assets/9348db54-67df-4d6f-b123-d90e224161df" width="100%" alt="Matrice & Risques" />
+      <p align="center"><b>Points de Bascule</b></p>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://github.com/user-attachments/assets/30495867-825a-4de3-8178-f37e0c212092" width="100%" alt="Courbe Historique" />
+      <p align="center"><b>Analyse Historique</b></p>
+    </td>
+    <td>
+      <img src="https://github.com/user-attachments/assets/29d0474b-8081-4afd-a54a-532f9d90509b" width="100%" alt="Solutions" />
+      <p align="center"><b>Plan de Mitigation</b></p>
+    </td>
+  </tr>
+</table>
 
-<div align="center">
-  <img width="300" height="300" alt="Indicateurs Clés Carré" src="https://github.com/user-attachments/assets/04227762-b763-4d81-979a-cb7f4b435f91" style="object-fit: cover; aspect-ratio: 1/1;" />
-  <img width="300" height="300" alt="Matrice & Risques Carré" src="https://github.com/user-attachments/assets/9348db54-67df-4d6f-b123-d90e224161df" style="object-fit: cover; aspect-ratio: 1/1;" />
-  <img width="300" height="300" alt="Courbe Historique Carré" src="https://github.com/user-attachments/assets/30495867-825a-4de3-8178-f37e0c212092" style="object-fit: cover; aspect-ratio: 1/1;" />
-  <img width="300" height="300" alt="Solutions Carré" src="https://github.com/user-attachments/assets/29d0474b-8081-4afd-a54a-532f9d90509b" style="object-fit: cover; aspect-ratio: 1/1;" />
-</div>
-
-
-
----
 --------
 Réalisé par ANTON NELCON Steve
