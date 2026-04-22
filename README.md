@@ -1,7 +1,7 @@
-#  MONITEUR CLIMATIQUE GLOBAL — v3.5 Tactique
+#  MONITEUR CLIMATIQUE GLOBAL 
 
 ![Status](https://img.shields.io/badge/STATUS-ANOMALIE_DÉTECTÉE-red?style=for-the-badge)
-![Version](https://img.shields.io/badge/VERSION-3.5_TACTIQUE-orange?style=for-the-badge)
+
 
 <img width="1860" height="567" alt="image" src="https://github.com/user-attachments/assets/e8c1394f-da9f-415c-ba1d-0e219c59c5d0" />
 
@@ -49,12 +49,40 @@ L'interface surveille plusieurs **points de bascule** (tipping points), des seui
 * **Logic** : Vanilla JavaScript (Zéro dépendance) pour la gestion des onglets, du temps et du curseur.
 
 ---
+ Sources des Données (Open Data)
+
+Le dashboard utilise des flux de données provenant des institutions scientifiques les plus reconnues au monde :
+
+    NASA (Global Climate Change) : Données sur l'anomalie thermique et la glace arctique.
+
+    NOAA (National Oceanic and Atmospheric Administration) : Mesures de la concentration de CO2 atmosphérique (Observatoire de Mauna Loa).
+
+    GIEC (IPCC) : Rapports de synthèse AR6 pour les probabilités des points de bascule et les objectifs de mitigation.
+
+    Climate Watch / World Resources Institute : Répartition des émissions par secteur (Gt CO2​e).
+---
+
 
 ##  Installation Rapide
 
 1. **Cloner le projet**
    ```bash
    git clone [https://github.com/votre-nom/moniteur-climatique.git](https://github.com/votre-nom/moniteur-climatique.git)
-''
+
+
+##  Captures d'écran
+
+Voici un aperçu de l'interface tactique en action :
+
+Ce moniteur climatique est une interface tactique immersive permettant de visualiser en temps réel les indicateurs critiques de l'urgence planétaire, comme l'anomalie thermique de +1.48°C et la concentration record de CO2. Il analyse les points de bascule irréversibles, notamment le dégel du permafrost et la mortalité des coraux, tout en identifiant l'énergie comme la source principale des émissions mondiales
+<img width="1847" height="352" alt="image" src="https://github.com/user-attachments/assets/04227762-b763-4d81-979a-cb7f4b435f91" />
+
+
+### Matrice des Émissions par Secteur
+→ Analyse détaillée des sources de pollution mondiales. La production d'énergie et la chaleur représentent la part majoritaire des émissions avec 73.2%, suivies par l'industrie à 18.4%."
+→ Indicateurs de non-retour : monitoring des seuils irréversibles. Le système détecte un risque critique de 85% pour le permafrost et de 92% pour la mortalité des récifs coralliens."
+<img width="1866" height="553" alt="image" src="https://github.com/user-attachments/assets/9348db54-67df-4d6f-b123-d90e224161df" />
+
+---
 --------
 Réalisé par ANTON NELCON Steve
