@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URGENCE CLIMATIQUE — v3.5 Tactique</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #03050a;
+    --surface: #0a0f1d;
+    --border: #1e2a4a;
+    --accent: #ff4b2b;
+    --cyan: #00f2ff;
+    --amber: #ffcc00;
+    --mint: #00e6a3;
+    --text: #e8eaf0;
+    --muted: #5c6a8e;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+
+  #radar-cursor {
+    position: fixed; width: 35px; height: 35px;
+    border: 1px solid var(--accent); border-radius: 50%;
+    pointer-events: none; z-index: 10000;
+    transform: translate(-50%, -50%);
+    display: flex; align-items: center; justify-content: center;
+    transition: width 0.2s, height 0.2s, border-color 0.3s;
+  }
+  #radar-cursor::before { content: ''; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.1); position: absolute; }
+  #radar-cursor::after { content: ''; height: 100%; width: 1px; background: rgba(255, 255, 255, 0.1); position: absolute; }
+  #radar-dot { width: 4px; height: 4px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); transition: background 0.3s; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: ""; position: fixed; inset: 0;
+    background-image: 
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E"),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: auto, 20px 20px, 20px 20px;
+    z-index: -1;
+  }
+
+  header {
+    padding: 1.5rem 2.5rem;
+    border-bottom: 2px solid var(--text);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(3, 5, 10, 0.9);
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(5px);
+  }
+
+  .tabs-nav {
+    display: flex; background: var(--surface); padding: 0 2.5rem;
+    border-bottom: 1px solid var(--border); gap: 2.5rem;
+  }
+  .tab-btn {
+    padding: 1.2rem 0; font-family: var(--font-mono); font-size: 0.75rem;
+    color: var(--muted); text-transform: uppercase; border: none;
+    background: none; border-bottom: 3px solid transparent; transition: 0.3s;
+  }
+  .tab-btn.active { color: #fff; border-bottom-color: var(--accent); text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+
+  .tab-content { display: none; padding: 2.5rem; animation: fade 0.4s ease; }
+  .tab-content.active { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; max-width: 1800px; margin: 0 auto; }
+
+  @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); padding: 2rem; position: relative; transition: all 0.2s; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+  .panel:hover { border-color: var(--muted); transform: translateY(-3px); }
+  .panel-header { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); text-transform: uppercase; margin-bottom: 1.5rem; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .panel-title { font-family: var(--font-display); font-size: 1.8rem; color: var(--text); margin-bottom: 0.8rem; line-height: 1; }
+  .data-value { font-family: var(--font-mono); font-size: 4rem; font-weight: 700; line-height: 1; letter-spacing: -3px; }
+  .unit { font-size: 1.5rem; color: var(--muted); font-weight: 400; margin-left: 8px; }
+  .trend { font-size: 0.9rem; font-family: var(--font-mono); margin-top: 10px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+
+  .col-2 { grid-column: span 2; } .col-3 { grid-column: span 3; } .col-4 { grid-column: span 4; } .row-2 { grid-row: span 2; }
+
+  .world-map-bg { position: absolute; inset: 0; opacity: 0.1; z-index: 0; pointer-events: none; padding: 30px; }
+  
+  .chart-container { display: flex; height: 250px; position: relative; z-index: 1; }
+  .y-axis { 
+    display: flex; flex-direction: column; justify-content: space-between; 
+    padding-right: 10px; font-family: var(--font-mono); font-size: 0.65rem; 
+    color: var(--muted); text-align: right; border-right: 1px solid var(--border);
+  }
+  .chart-raw { flex-grow: 1; height: 100%; position: relative; }
+  
+  svg.graph-line { width: 100%; height: 250px; }
+  svg.graph-line path { fill: none; stroke: var(--accent); stroke-width: 3; }
+  svg.graph-line circle { fill: var(--bg); stroke: var(--accent); stroke-width: 3; }
+
+  .event-feed { height: 350px; overflow-y: auto; font-family: var(--font-mono); font-size: 0.8rem; padding-right: 15px; }
+  .event-feed::-webkit-scrollbar { width: 4px; }
+  .event-feed::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 2px; }
+  .event-entry { padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; gap: 15px; line-height: 1.4; }
+  .event-date { color: var(--accent); font-weight: bold; }
+
+  .sector-matrix { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
+  .sector-data-group { border-left: 2px solid var(--border); padding-left: 15px; transition: border-color 0.3s; }
+  
+  .sector-info { display: flex; flex-direction: row-reverse; justify-content: space-between; align-items: baseline; margin-bottom: 5px; font-family: var(--font-mono); }
+  .sector-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text); }
+  .sector-main-val { font-size: 1.2rem; font-weight: bold; }
+  
+  .bar-matrix-bg { width: 100%; height: 10px; background: #1a2233; position: relative; border-radius: 2px; overflow: hidden; }
+  .bar-matrix-fill { height: 100%; transition: width 0.5s ease; border-radius: 2px; }
+  
+  .sub-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; font-size: 0.6rem; color: var(--muted); }
+  .sub-val { color: var(--text); font-weight: bold; margin-left: 3px; }
+
+  .gauge-matrix { width: 180px; height: 180px; margin: 0 auto; position: relative; border-radius: 50%; background: conic-gradient(var(--mint) calc(87 * 1.0%), var(--border) 0); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(0,230,163,0.2); }
+  .gauge-matrix::after { content: "87%"; position: absolute; font-family: var(--font-display); font-size: 4rem; color: #fff; text-shadow: 0 0 15px #fff; }
+  .gauge-matrix-inner { width: 150px; height: 150px; background: var(--surface); border-radius: 50%; border: 2px solid var(--bg); }
+
+  footer { grid-column: span 4; margin-top: 3rem; padding: 2rem; border-top: 2px solid var(--text); font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); display: flex; justify-content: space-between; background: rgba(0,0,0,0.5); }
+  .author { color: #fff; font-weight: bold; }
+  
+  .blink { animation: blink 1.5s infinite; font-weight: bold; }
+  @keyframes blink { 50% { opacity: 0.2; color: #fff; } }
+
+  @keyframes countUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .data-value, .sector-main-val { animation: countUp 0.8s ease forwards; }
+
+</style>
+</head>
+<body>
+
+<div id="radar-cursor">
+  <div id="radar-dot"></div>
+</div>
+
+<header>
+  <div class="logo-area">
+    <h1 style="color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3)">MONITEUR CLIMATIQUE GLOBAL</h1>
+    <p>ID_STATION: FRANCE_DRANCY_01 // RÉSEAU_BÊTA</p>
+  </div>
+  <div class="status-zone">
+    État du Système: <span class="blink" style="color: var(--accent)">ANOMALIE DÉTECTÉE</span><br>
+    <span id="date-time">--/--/---- --:--:--</span>
+  </div>
+</header>
+
+<nav class="tabs-nav">
+  <button class="tab-btn active" onclick="openTab(event, 'tac-view')">Vue Tactique</button>
+  <button class="tab-btn" onclick="openTab(event, 'sat-view')">Données Secondaires</button>
+  <button class="tab-btn" onclick="openTab(event, 'risk-view')">Analyse Risques</button>
+  <button class="tab-btn" onclick="openTab(event, 'sol-view')">Solutions / Actions</button>
+</nav>
+
+<main id="tac-view" class="tab-content active">
+  <div class="panel" style="border-left: 3px solid var(--accent)">
+    <div class="panel-header">ANOMALIE TEMP. (REF: 1850)</div>
+    <div class="panel-title">MOYENNE GLOBALE</div>
+    <div class="data-value" style="color: var(--accent);">+1.48<span class="unit">°C</span></div>
+    <div class="trend" style="color: var(--accent)">[ ▲ CROISSANCE CRITIQUE ]</div>
+  </div>
+
+  <div class="panel" style="border-left: 3px solid #fff">
+    <div class="panel-header">CONCENTRATION CO2</div>
+    <div class="panel-title">ATMOSPHÈRE (NOAA)</div>
+    <div class="data-value">424<span class="unit">ppm</span></div>
+    <div class="trend" style="color: var(--muted)">[ ▲ MAXIMUM HISTORIQUE ]</div>
+  </div>
+
+  <div class="panel" style="border-left: 3px solid var(--cyan)">
+    <div class="panel-header">ÉLÉVATION NIVEAU MER</div>
+    <div class="panel-title">DEPUIS 1993 (SAT)</div>
+    <div class="data-value" style="color: var(--cyan);">+101<span class="unit">mm</span></div>
+    <div class="trend" style="color: var(--cyan)">[ ▲ ACCÉLÉRATION ]</div>
+  </div>
+
+  <div class="panel" style="border-left: 3px solid var(--mint)">
+    <div class="panel-header">GLACE ARCTIQUE (MIN)</div>
+    <div class="panel-title">ÉTENDUE SEPTEMBRE</div>
+    <div class="data-value" style="color: var(--mint);">4.37<span class="unit">M km²</span></div>
+    <div class="trend" style="color: var(--mint)">[ ▼ EFFONDREMENT SYSTÈME ]</div>
+  </div>
+
+  <div class="panel col-3 row-2">
+    <div class="panel-header">COURBE HISTORIQUE DES TEMPÉRATURES (1880 - 2024)</div>
+    <div class="world-map-bg">
+        <svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" style="fill:none; stroke:var(--muted); stroke-width:1; opacity: 0.3">
+            <path d="M150,150 L200,100 L300,120 L350,80 L450,100 L500,50 L600,80 L700,50 L800,100 L900,80 L950,150 L900,250 L850,350 L750,400 L650,380 L550,450 L450,400 L350,420 L250,380 L150,350 L100,250 Z" stroke-dasharray="5 5"/>
+            <path d="M300,250 L400,200 L500,220 L550,180 L650,200 L700,250 L650,300 L550,320 L450,300 L350,320 Z" />
+            <circle cx="500" cy="250" r="10" stroke="var(--accent)" stroke-width="2"/>
+            <line x1="0" y1="250" x2="1000" y2="250" stroke-dasharray="2 2" opacity="0.3"/>
+            <line x1="500" y1="0" x2="500" y2="500" stroke-dasharray="2 2" opacity="0.3"/>
+        </svg>
+    </div>
+    
+    <div class="chart-container">
+        <div class="y-axis">
+            <span>+1.5°C</span>
+            <span>+1.0°C</span>
+            <span>+0.5°C</span>
+            <span>0.0°C</span>
+            <span>-0.2°C</span>
+        </div>
+        <div class="chart-raw">
+            <svg class="graph-line" viewBox="0 0 500 180" preserveAspectRatio="none">
+                <line x1="0" y1="30" x2="500" y2="30" stroke="var(--border)" stroke-width="1"/>
+                <line x1="0" y1="90" x2="500" y2="90" stroke="#fff" stroke-width="1" opacity="0.3"/> 
+                <line x1="0" y1="150" x2="500" y2="150" stroke="var(--border)" stroke-width="1"/>
+                <path d="M0,160 L50,150 L100,155 L150,130 L200,140 L250,110 L300,120 L350,90 L400,100 L450,60 L500,30" stroke="var(--accent)" stroke-width="3" style="filter: drop-shadow(0 0 5px var(--accent))"/>
+                <circle cx="500" cy="30" r="6" style="stroke: #fff; fill: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 10px var(--accent))"/>
+            </svg>
+        </div>
+    </div>
+    
+    <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); margin-top: -10px; border-top: 1px solid var(--border); padding-top: 8px;">
+        <span>1880</span><span>1910</span><span>1940</span><span>1970</span><span>2000</span><span style="color: #fff">2024</span>
+    </div>
+  </div>
+
+  <div class="panel row-2">
+    <div class="panel-header">JOURNAL DES ÉVÉNEMENTS CLÉS</div>
+    <div class="event-feed">
+        <div class="event-entry"><span class="event-date">2024</span> <span style="color:var(--accent)">Anomalie thermique océanique sans précédent détectée.</span></div>
+        <div class="event-entry"><span class="event-date">2023</span> Incendies massifs au Canada (18M ha). Record absolu.</div>
+        <div class="event-entry"><span class="event-date">2023</span> Inondations dévastatrices en Libye (Tempête Daniel).</div>
+        <div class="event-entry"><span class="event-date">2022</span> Vague de chaleur extrême en Europe (+40°C au Royaume-Uni).</div>
+        <div class="event-entry"><span class="event-date">2021</span> Dôme de chaleur historique sur l'Ouest Canadien (Lytton: 49.6°C).</div>
+        <div class="event-entry"><span class="event-date">2020</span> Saison d'ouragans record dans l'Atlantique (30 tempêtes nommées).</div>
+        <div class="event-entry"><span class="event-date">2019</span> Fonte record Groenland: 532 Gt de glace. Cyclone Idai, Mozambique.</div>
+    </div>
+  </div>
+
+  <div class="panel col-2">
+    <div class="panel-header">MATRICE ÉMISSIONS PAR SECTEUR (Gt CO2e)</div>
+    <div class="sector-matrix">
+        <div class="sector-data-group" style="border-left-color: var(--accent)">
+            <div class="sector-info">
+                <span class="sector-main-val" style="color: var(--accent)">73.2<span style="font-size: 0.8rem; color: var(--muted)">%</span></span>
+                <span class="sector-label">1. Énergie / Chaleur</span>
+            </div>
+            <div class="bar-matrix-bg">
+                <div class="bar-matrix-fill" style="width: 73.2%; background: linear-gradient(90deg, #bb3311, var(--accent))"></div>
+            </div>
+            <div class="sub-metrics">
+                <div>Prod. Élec: <span class="sub-val" style="color: var(--accent)">25 Gt</span></div>
+                <div>Transport: <span class="sub-val" style="color: var(--accent)">16 Gt</span></div>
+            </div>
+        </div>
+        
+        <div class="sector-data-group" style="border-left-color: var(--cyan)">
+            <div class="sector-info">
+                <span class="sector-main-val" style="color: var(--cyan)">18.4<span style="font-size: 0.8rem; color: var(--muted)">%</span></span>
+                <span class="sector-label">2. Industrie</span>
+            </div>
+            <div class="bar-matrix-bg">
+                <div class="bar-matrix-fill" style="width: 18.4%; background: linear-gradient(90deg, #007799, var(--cyan))"></div>
+            </div>
+            <div class="sub-metrics">
+                <div>Acier/Ciment: <span class="sub-val" style="color: var(--cyan)">8.2 Gt</span></div>
+                <div>Chimie: <span class="sub-val" style="color: var(--cyan)">4 Gt</span></div>
+            </div>
+        </div>
+        
+        <div class="sector-data-group" style="border-left-color: var(--amber)">
+            <div class="sector-info">
+                <span class="sector-main-val" style="color: var(--amber)">12.1<span style="font-size: 0.8rem; color: var(--muted)">%</span></span>
+                <span class="sector-label">3. Agriculture & Sols</span>
+            </div>
+            <div class="bar-matrix-bg">
+                <div class="bar-matrix-fill" style="width: 12.1%; background: linear-gradient(90deg, #cc9900, var(--amber))"></div>
+            </div>
+            <div class="sub-metrics">
+                <div>Élevage: <span class="sub-val" style="color: var(--amber)">5.8 Gt</span></div>
+                <div>Défor./Sols: <span class="sub-val" style="color: var(--amber)">3.1 Gt</span></div>
+            </div>
+        </div>
+        
+        <div class="sector-data-group" style="border-left-color: var(--mint)">
+            <div class="sector-info">
+                <span class="sector-main-val" style="color: var(--mint)">5.3<span style="font-size: 0.8rem; color: var(--muted)">%</span></span>
+                <span class="sector-label">4. Déchets & Autres</span>
+            </div>
+            <div class="bar-matrix-bg">
+                <div class="bar-matrix-fill" style="width: 5.3%; background: linear-gradient(90deg, #009966, var(--mint))"></div>
+            </div>
+            <div class="sub-metrics">
+                <div>Méthane Déch.: <span class="sub-val" style="color: var(--mint)">2.8 Gt</span></div>
+                <div>Autres GES: <span class="sub-val" style="color: var(--mint)">1.1 Gt</span></div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <div class="panel col-2" style="text-align: center; border: 2px solid var(--mint); box-shadow: 0 0 20px rgba(0,230,163,0.15)">
+    <div class="panel-header">INDICE D'URGENCE GLOBAL</div>
+    <div class="gauge-matrix">
+        <div class="gauge-matrix-inner"></div>
+    </div>
+    <p style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--mint); text-transform: uppercase; margin-top: 15px; font-weight: bold; letter-spacing: 1px;">Point de Bascule Imminent</p>
+  </div>
+</main>
+
+<main id="sat-view" class="tab-content">
+  <div class="panel col-2">
+    <div class="panel-header">PROJECTION : POINTS CHAUDS MONDIAUX</div>
+    <div style="height: 300px; position: relative; background: rgba(0,0,0,0.2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+        <div style="position: absolute; top: 20%; left: 10%; width: 25%; height: 40%; border: 1px dashed var(--muted); background: rgba(255,75,43,0.1);">
+            <span style="font-size: 0.6rem; color: var(--muted); position: absolute; bottom: 5px; left: 5px;">NORTH AMERICA</span>
+            <div class="blink" style="position: absolute; top: 40%; left: 50%; width: 8px; height: 8px; background: var(--accent); border-radius: 50%;"></div>
+        </div>
+        <div style="position: absolute; top: 65%; left: 18%; width: 15%; height: 30%; border: 1px dashed var(--muted); background: rgba(0,242,255,0.05);">
+            <span style="font-size: 0.6rem; color: var(--muted); position: absolute; bottom: 5px; left: 5px;">SOUTH AMERICA</span>
+        </div>
+        <div style="position: absolute; top: 15%; left: 45%; width: 10%; height: 15%; border: 1px dashed var(--muted); background: rgba(255,75,43,0.3);">
+            <span style="font-size: 0.6rem; color: var(--muted); position: absolute; top: -15px; left: 0;">EUROPE</span>
+            <div class="blink" style="position: absolute; top: 20%; left: 30%; width: 8px; height: 8px; background: var(--accent); border-radius: 50%;"></div>
+        </div>
+        <div style="position: absolute; top: 35%; left: 42%; width: 18%; height: 45%; border: 1px dashed var(--muted); background: rgba(255,204,0,0.1);">
+            <span style="font-size: 0.6rem; color: var(--muted); position: absolute; bottom: 5px; left: 5px;">AFRICA</span>
+        </div>
+        <div style="position: absolute; top: 10%; left: 60%; width: 35%; height: 50%; border: 1px dashed var(--muted); background: rgba(255,75,43,0.2);">
+            <span style="font-size: 0.6rem; color: var(--muted); position: absolute; top: 5px; right: 5px;">ASIA</span>
+            <div class="blink" style="position: absolute; top: 50%; left: 40%; width: 10px; height: 10px; background: var(--accent); border-radius: 50%;"></div>
+        </div>
+        <div style="position: absolute; top: 65%; left: 75%; width: 15%; height: 20%; border: 1px dashed var(--muted); background: rgba(0,230,163,0.05);">
+            <span style="font-size: 0.6rem; color: var(--muted); position: absolute; bottom: 5px; left: 5px;">OCEANIA</span>
+        </div>
+    </div>
+    <div style="margin-top: 15px; font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted);">
+        [ SCANNER ACTIF ] DÉTECTION DES ANOMALIES EN TEMPS RÉEL...
+    </div>
+  </div>
+
+  <div class="panel col-2">
+    <div class="panel-header">ANOMALIE PAR CONTINENT (BARRES)</div>
+    <div class="sector-matrix">
+        <div class="sector-data-group" style="border-left-color: var(--accent)">
+            <div class="sector-info">
+                <span class="sector-main-val" style="color: var(--accent)">+2.23°C</span>
+                <span class="sector-label">EUROPE</span>
+            </div>
+            <div class="bar-matrix-bg">
+                <div class="bar-matrix-fill" style="width: 90%; background: var(--accent)"></div>
+            </div>
+        </div>
+        <div class="sector-data-group" style="border-left-color: var(--amber)">
+            <div class="sector-info">
+                <span class="sector-main-val" style="color: var(--amber)">+1.85°C</span>
+                <span class="sector-label">ASIE</span>
+            </div>
+            <div class="bar-matrix-bg">
+                <div class="bar-matrix-fill" style="width: 75%; background: var(--amber)"></div>
+            </div>
+        </div>
+        <div class="sector-data-group" style="border-left-color: #fff">
+            <div class="sector-info">
+                <span class="sector-main-val" style="color: #fff">+1.62°C</span>
+                <span class="sector-label">AMÉRIQUE DU NORD</span>
+            </div>
+            <div class="bar-matrix-bg">
+                <div class="bar-matrix-fill" style="width: 65%; background: #fff"></div>
+            </div>
+        </div>
+        <div class="sector-data-group" style="border-left-color: var(--cyan)">
+            <div class="sector-info">
+                <span class="sector-main-val" style="color: var(--cyan)">+1.35°C</span>
+                <span class="sector-label">AFRIQUE</span>
+            </div>
+            <div class="bar-matrix-bg">
+                <div class="bar-matrix-fill" style="width: 55%; background: var(--cyan)"></div>
+            </div>
+        </div>
+        <div class="sector-data-group" style="border-left-color: var(--mint)">
+            <div class="sector-info">
+                <span class="sector-main-val" style="color: var(--mint)">+1.10°C</span>
+                <span class="sector-label">OCÉANIE</span>
+            </div>
+            <div class="bar-matrix-bg">
+                <div class="bar-matrix-fill" style="width: 45%; background: var(--mint)"></div>
+            </div>
+        </div>
+    </div>
+  </div>
+</main>
+
+<main id="risk-view" class="tab-content">
+  <div class="panel col-2">
+    <div class="panel-header">POINTS DE BASCULE CRITIQUES</div>
+    <div class="sector-matrix">
+      <div class="sector-data-group" style="border-left-color: var(--accent)">
+        <div class="sector-info"><span class="sector-main-val" style="color: var(--accent)">85%</span><span class="sector-label">Fonte Permafrost</span></div>
+        <div class="bar-matrix-bg"><div class="bar-matrix-fill" style="width: 85%; background: var(--accent)"></div></div>
+      </div>
+      <div class="sector-data-group" style="border-left-color: var(--amber)">
+        <div class="sector-info"><span class="sector-main-val" style="color: var(--amber)">70%</span><span class="sector-label">Arrêt Courants Atlantiques (AMOC)</span></div>
+        <div class="bar-matrix-bg"><div class="bar-matrix-fill" style="width: 70%; background: var(--amber)"></div></div>
+      </div>
+      <div class="sector-data-group" style="border-left-color: var(--cyan)">
+        <div class="sector-info"><span class="sector-main-val" style="color: var(--cyan)">92%</span><span class="sector-label">Mortalité Coraux</span></div>
+        <div class="bar-matrix-bg"><div class="bar-matrix-fill" style="width: 92%; background: var(--cyan)"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel col-2">
+    <div class="panel-header">PROBABILITÉ ÉVÉNEMENTS EXTRÊMES</div>
+    <div style="font-family: var(--font-mono); font-size: 0.8rem; line-height: 2;">
+      > MÉGA-INCENDIES : <span style="color: var(--accent)">RISQUE TRÈS ÉLEVÉ</span><br>
+      > CYCLONES CAT. 5 : <span style="color: var(--accent)">FRÉQUENCE +40%</span><br>
+      > SÉCHERESSES PROLONGÉES : <span style="color: var(--amber)">ALERTE ROUGE</span><br>
+      > INONDATIONS FLASH : <span style="color: var(--cyan)">INSTABILITÉ DÉTECTÉE</span>
+    </div>
+  </div>
+</main>
+
+<main id="sol-view" class="tab-content">
+  <div class="panel col-4">
+    <div class="panel-header">PLAN DE MITIGATION GLOBAL</div>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+      <div style="border: 1px solid var(--border); padding: 15px;">
+        <h4 style="color: var(--mint); margin-bottom: 10px;">ÉNERGIES RENOUVELABLES</h4>
+        <p style="font-size: 0.75rem; color: var(--muted);">Objectif : 100% Décarboné d'ici 2040. Déploiement massif Solaire/Éolien.</p>
+      </div>
+      <div style="border: 1px solid var(--border); padding: 15px;">
+        <h4 style="color: var(--cyan); margin-bottom: 10px;">REFORESTATION</h4>
+        <p style="font-size: 0.75rem; color: var(--muted);">Restauration des puits de carbone naturels. Protection de l'Amazonie.</p>
+      </div>
+      <div style="border: 1px solid var(--border); padding: 15px;">
+        <h4 style="color: var(--accent); margin-bottom: 10px;">EFFICACITÉ BÂTIMENT</h4>
+        <p style="font-size: 0.75rem; color: var(--muted);">Isolation thermique globale et réduction de la consommation urbaine.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div>SOURCE DONNÉES: GIEC / NASA / NOAA // UNITÉ D'ANALYSE CLIMATIQUE GLOBAL // DATA REVISION: AVRIL 2024</div>
+  <div style="color: var(--text);">Réalisé par <span class="author">Steve NELCON</span></div>
+</footer>
+
+<script>
+  function updateDateTime() {
+    const now = new Date();
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    document.getElementById('date-time').innerText = now.toLocaleString('fr-FR', options).replace(',', ' //');
+  }
+  setInterval(updateDateTime, 1000);
+  updateDateTime();
+
+  const cursor = document.getElementById('radar-cursor');
+  document.addEventListener('mousemove', (e) => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+  });
+
+  document.querySelectorAll('.panel, .tab-btn').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '60px';
+      cursor.style.height = '60px';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '35px';
+      cursor.style.height = '35px';
+    });
+  });
+
+  function openTab(evt, tabId) {
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    evt.currentTarget.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
