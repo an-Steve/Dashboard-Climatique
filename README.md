@@ -72,16 +72,14 @@ Le dashboard utilise des flux de données provenant des institutions scientifiqu
 
 ##  Captures d'écran
 
-Voici un aperçu de l'interface tactique en action :
+<div align="center">
+  <img width="300" height="300" alt="Indicateurs Clés Carré" src="https://github.com/user-attachments/assets/04227762-b763-4d81-979a-cb7f4b435f91" style="object-fit: cover; aspect-ratio: 1/1;" />
+  <img width="300" height="300" alt="Matrice & Risques Carré" src="https://github.com/user-attachments/assets/9348db54-67df-4d6f-b123-d90e224161df" style="object-fit: cover; aspect-ratio: 1/1;" />
+  <img width="300" height="300" alt="Courbe Historique Carré" src="https://github.com/user-attachments/assets/30495867-825a-4de3-8178-f37e0c212092" style="object-fit: cover; aspect-ratio: 1/1;" />
+  <img width="300" height="300" alt="Solutions Carré" src="https://github.com/user-attachments/assets/29d0474b-8081-4afd-a54a-532f9d90509b" style="object-fit: cover; aspect-ratio: 1/1;" />
+</div>
 
-Ce moniteur climatique est une interface tactique immersive permettant de visualiser en temps réel les indicateurs critiques de l'urgence planétaire, comme l'anomalie thermique de +1.48°C et la concentration record de CO2. Il analyse les points de bascule irréversibles, notamment le dégel du permafrost et la mortalité des coraux, tout en identifiant l'énergie comme la source principale des émissions mondiales
-<img width="1847" height="352" alt="image" src="https://github.com/user-attachments/assets/04227762-b763-4d81-979a-cb7f4b435f91" />
 
-
-### Matrice des Émissions par Secteur
-→ Analyse détaillée des sources de pollution mondiales. La production d'énergie et la chaleur représentent la part majoritaire des émissions avec 73.2%, suivies par l'industrie à 18.4%."
-→ Indicateurs de non-retour : monitoring des seuils irréversibles. Le système détecte un risque critique de 85% pour le permafrost et de 92% pour la mortalité des récifs coralliens."
-<img width="1866" height="553" alt="image" src="https://github.com/user-attachments/assets/9348db54-67df-4d6f-b123-d90e224161df" />
 
 ---
 --------
